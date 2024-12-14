@@ -1,4 +1,4 @@
-import 'package:expense_app_ui/second_page.dart';
+import 'package:expense_app_ui/ui/second_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 

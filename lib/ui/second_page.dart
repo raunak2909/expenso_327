@@ -1,4 +1,4 @@
-import 'package:expense_app_ui/third_page.dart';
+import 'package:expense_app_ui/ui/third_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 

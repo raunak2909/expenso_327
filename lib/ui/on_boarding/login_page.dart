@@ -1,33 +1,38 @@
-import 'package:expense_app_ui/sign_up.dart';
+import 'package:expense_app_ui/data/local/db_helper.dart';
+import 'package:expense_app_ui/ui/home_page.dart';
+import 'package:expense_app_ui/ui/on_boarding/sign_up_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    TextEditingController usernameController = TextEditingController();
+    TextEditingController emailController = TextEditingController();
     TextEditingController passwordController = TextEditingController();
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Center(
-              child: Image.asset(
-            "asset/image/loginlogo.png",
-            fit: BoxFit.contain,
-            height: 100,
-            width: 100,
-            color: Color(0xFF727dd6),
-          ),),
+            child: Image.asset(
+              "asset/image/loginlogo.png",
+              fit: BoxFit.contain,
+              height: 100,
+              width: 100,
+              color: Color(0xFF727dd6),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: SizedBox(
               height: 70,
               child: TextField(
-                controller: usernameController,
+                controller: emailController,
                 decoration: InputDecoration(
-                  labelText: 'Username', // Label for the input field
-                  hintText: 'Enter your username', // Hint text inside the field
+                  labelText: 'Username',
+                  // Label for the input field
+                  hintText: 'Enter your username',
+                  // Hint text inside the field
                   border: OutlineInputBorder(
                     // Border around the input field
                     borderRadius: BorderRadius.circular(8.0),
@@ -43,7 +48,8 @@ class LoginPage extends StatelessWidget {
                         BorderSide(color: Colors.purpleAccent, width: 2.0),
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  filled: true, // Adds a fill color to the input field
+                  filled: true,
+                  // Adds a fill color to the input field
                   fillColor: Colors.white, // Color of the fill
                 ),
               ),
@@ -58,8 +64,10 @@ class LoginPage extends StatelessWidget {
                 obscureText: true,
                 obscuringCharacter: "*",
                 decoration: InputDecoration(
-                  labelText: 'Password', // Label for the input field
-                  hintText: 'Enter your Password', // Hint text inside the field
+                  labelText: 'Password',
+                  // Label for the input field
+                  hintText: 'Enter your Password',
+                  // Hint text inside the field
                   border: OutlineInputBorder(
                     // Border around the input field
                     borderRadius: BorderRadius.circular(8.0),
@@ -75,14 +83,36 @@ class LoginPage extends StatelessWidget {
                         BorderSide(color: Colors.purpleAccent, width: 2.0),
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  filled: true, // Adds a fill color to the input field
+                  filled: true,
+                  // Adds a fill color to the input field
                   fillColor: Colors.white, // Color of the fill
                 ),
               ),
             ),
           ),
+
+          ///chandera56@gmail.com
+
+
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () async{
+              DbHelper dbHelper = DbHelper.instance;
+
+              if (emailController.text.isNotEmpty &&
+                  passwordController.text.isNotEmpty) {
+
+                if(await dbHelper.authenticateUser(email: emailController.text, pass: passwordController.text)){
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(),));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Invalid credentials, login again!!")));
+                }
+
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Please fill all the required blanks!!")));
+              }
+            },
             child: SizedBox(
               height: 45,
               width: 100,
@@ -109,9 +139,9 @@ class LoginPage extends StatelessWidget {
             height: 8,
           ),
           Text(
-                      "Forgotten password?",
-                      style: TextStyle(fontSize: 15, color: Colors.blue),
-                    ),
+            "Forgotten password?",
+            style: TextStyle(fontSize: 15, color: Colors.blue),
+          ),
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Row(
@@ -138,8 +168,29 @@ class LoginPage extends StatelessWidget {
               ],
             ),
           ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Don't have an account ?",
+                style: TextStyle(fontSize: 16, color: Colors.blue),
+              ),
+              InkWell(
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => SignupPage()));
+                },
+                child: Expanded(
+                  child: Text(
+                    " Create now",
+                    style: TextStyle(color: Colors.black, fontSize: 15),
+                  ),
+                ),
+              ),
+            ],
+          )
 
-          ElevatedButton(
+          /*ElevatedButton(
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context)=>SignupPage()));
             },
@@ -155,7 +206,7 @@ class LoginPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-          ),
+          ),*/
         ],
       ),
     );
