@@ -180,11 +180,9 @@ class LoginPage extends StatelessWidget {
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => SignupPage()));
                 },
-                child: Expanded(
-                  child: Text(
-                    " Create now",
-                    style: TextStyle(color: Colors.black, fontSize: 15),
-                  ),
+                child: Text(
+                  " Create now",
+                  style: TextStyle(color: Colors.black, fontSize: 15),
                 ),
               ),
             ],

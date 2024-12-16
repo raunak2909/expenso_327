@@ -1,4 +1,4 @@
-import 'package:expense_app_ui/ui/third_page.dart';
+import 'package:expense_app_ui/ui/add_exp_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -354,7 +354,7 @@ class SecondPage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(onPressed: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context)=>ThirdPage()));
+        Navigator.push(context, MaterialPageRoute(builder: (context)=>AddExpPage()));
       },child: Icon(Icons.add),),
     );
   }
