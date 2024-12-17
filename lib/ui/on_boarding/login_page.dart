@@ -3,6 +3,7 @@ import 'package:expense_app_ui/ui/home_page.dart';
 import 'package:expense_app_ui/ui/on_boarding/sign_up_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatelessWidget {
   @override
@@ -102,6 +103,7 @@ class LoginPage extends StatelessWidget {
                   passwordController.text.isNotEmpty) {
 
                 if(await dbHelper.authenticateUser(email: emailController.text, pass: passwordController.text)){
+
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(),));
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(

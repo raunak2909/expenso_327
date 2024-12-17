@@ -1,12 +1,23 @@
+import 'package:expense_app_ui/domain/app_constants.dart';
 import 'package:expense_app_ui/domain/ui_helper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class AddExpPage extends StatelessWidget {
+class AddExpPage extends StatefulWidget {
+  @override
+  State<AddExpPage> createState() => _AddExpPageState();
+}
+
+class _AddExpPageState extends State<AddExpPage> {
   TextEditingController titleController = TextEditingController();
+
   TextEditingController descController = TextEditingController();
+
   TextEditingController amtController = TextEditingController();
+
   String selectedExpenseType = "Debit";
+
+  int selectedCatIndex = -1;
 
   List<String> mExpenseType = ["Debit", "Credit", "Loan", "Lend", "Borrow"];
 
@@ -18,29 +29,27 @@ class AddExpPage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Column(
-            spacing: 11,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: mFieldDecor(
-                    hint: "Enter title here..", heading: "Title"),
-              ),
-              TextField(
-                controller: descController,
-                decoration: mFieldDecor(
-                    hint: "Enter desc here..", heading: "Desc"),
-              ),
-              TextField(
-                controller: amtController,
-                decoration: mFieldDecor(
-                  mPrefixText: "\$ ",
-                    hint: "Enter Amount here..", heading: "Amount"),
-              ),
+        child: Column(spacing: 11, children: [
+          TextField(
+            controller: titleController,
+            decoration:
+                mFieldDecor(hint: "Enter title here..", heading: "Title"),
+          ),
+          TextField(
+            controller: descController,
+            decoration: mFieldDecor(hint: "Enter desc here..", heading: "Desc"),
+          ),
+          TextField(
+            controller: amtController,
+            decoration: mFieldDecor(
+                mPrefixText: "\$ ",
+                hint: "Enter Amount here..",
+                heading: "Amount"),
+          ),
 
-              /// expense type
-              StatefulBuilder(builder: (_, ss){
-                /*return DropdownButton(
+          /// expense type
+          StatefulBuilder(builder: (_, ss) {
+            /*return DropdownButton(
                     value: selectedExpenseType,
                     items: mExpenseType.map((expenseType) {
                       return DropdownMenuItem(child: Text(expenseType), value: expenseType,);
@@ -50,9 +59,9 @@ class AddExpPage extends StatelessWidget {
                       ss((){});
                     });*/
 
-                return DropdownMenu(
-                  width: double.infinity,
-                  inputDecorationTheme: InputDecorationTheme(
+            return DropdownMenu(
+                width: double.infinity,
+                inputDecorationTheme: InputDecorationTheme(
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(21),
                       borderSide: BorderSide(width: 1),
@@ -60,19 +69,69 @@ class AddExpPage extends StatelessWidget {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(21),
                       borderSide: BorderSide(width: 1),
-                    )
-                  ),
-                  initialSelection: selectedExpenseType,
-                    onSelected: (value){
-                    selectedExpenseType = value ?? "Debit";
-                    },
-                    dropdownMenuEntries: mExpenseType.map((expenseType){
-                  return DropdownMenuEntry(value: expenseType, label: expenseType);
+                    )),
+                initialSelection: selectedExpenseType,
+                onSelected: (value) {
+                  selectedExpenseType = value ?? "Debit";
+                },
+                dropdownMenuEntries: mExpenseType.map((expenseType) {
+                  return DropdownMenuEntry(
+                      value: expenseType, label: expenseType);
                 }).toList());
+          }),
 
-              })
-            ]
-        ),
+          InkWell(
+            onTap: () {
+              showModalBottomSheet(
+                  context: context,
+                  builder: (_) {
+                    return Container(
+                      padding: EdgeInsets.symmetric(vertical: 21,),
+                      child: GridView.builder(
+                        itemCount: AppConstants.mCat.length,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 4),
+                        itemBuilder: (_, index){
+                            return InkWell(
+                              onTap: (){
+                                selectedCatIndex = index;
+                                setState(() {
+
+                                });
+                                Navigator.pop(context);
+                              },
+                              child: Column(
+                                children: [
+                                  Image.asset(AppConstants.mCat[index].imgPath, width: 40, height: 40,),
+                                  Text(AppConstants.mCat[index].title, maxLines: 1, overflow: TextOverflow.ellipsis,)
+                                ],
+                              ),
+                            );
+                        },
+                      ),
+
+                    );
+                  });
+            },
+            child: Container(
+              width: double.infinity,
+              height: 55,
+              child: Center(
+                child: selectedCatIndex>=0 ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(AppConstants.mCat[selectedCatIndex].imgPath, width: 35, height: 35,),
+                    Text(" - ${AppConstants.mCat[selectedCatIndex].title}")
+                  ],
+                ) : Text('Choose a Category'),
+              ),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(21),
+                  border: Border.all(width: 1, color: Colors.black)),
+            ),
+          )
+        ]),
       ),
     );
   }
