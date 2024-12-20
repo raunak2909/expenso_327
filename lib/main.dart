@@ -1,12 +1,17 @@
 
+import 'package:expense_app_ui/data/local/db_helper.dart';
 import 'package:expense_app_ui/domain/app_constants.dart';
+import 'package:expense_app_ui/ui/bloc/expense_bloc.dart';
 import 'package:expense_app_ui/ui/home_page.dart';
 import 'package:expense_app_ui/ui/on_boarding/login_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main(){
-  runApp(Myapp());
+  runApp(BlocProvider(
+    create: (context) => ExpenseBloc(dbHelper: DbHelper.instance),
+      child: Myapp()));
 }
 
 class Myapp extends StatefulWidget{
@@ -19,16 +24,10 @@ class _MyappState extends State<Myapp> {
   @override
   void initState() {
     super.initState();
-    getPrefsValue();
+    //getPrefsValue();
   }
 
-  void getPrefsValue() async{
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    uid = prefs.getString("uid") ?? "";
-    setState(() {
 
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +35,7 @@ class _MyappState extends State<Myapp> {
 
     return MaterialApp(
       title: AppConstants.APP_NAME,
-      home: uid!= "" ? HomePage() : LoginPage(),
+      home: HomePage(),
     );
   }
 }

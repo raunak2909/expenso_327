@@ -1,6 +1,7 @@
 import 'package:expense_app_ui/data/local/db_helper.dart';
 import 'package:expense_app_ui/ui/home_page.dart';
 import 'package:expense_app_ui/ui/on_boarding/sign_up_page.dart';
+import 'package:expense_app_ui/ui/dashboard_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -104,7 +105,7 @@ class LoginPage extends StatelessWidget {
 
                 if(await dbHelper.authenticateUser(email: emailController.text, pass: passwordController.text)){
 
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(),));
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardPage(),));
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("Invalid credentials, login again!!")));

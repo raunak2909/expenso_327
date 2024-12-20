@@ -1,7 +1,14 @@
+import 'package:expense_app_ui/data/local/db_helper.dart';
+import 'package:expense_app_ui/data/local/model/expense_model.dart';
 import 'package:expense_app_ui/domain/app_constants.dart';
 import 'package:expense_app_ui/domain/ui_helper.dart';
+import 'package:expense_app_ui/ui/bloc/expense_bloc.dart';
+import 'package:expense_app_ui/ui/bloc/expense_event.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddExpPage extends StatefulWidget {
   @override
@@ -33,7 +40,7 @@ class _AddExpPageState extends State<AddExpPage> {
           TextField(
             controller: titleController,
             decoration:
-                mFieldDecor(hint: "Enter title here..", heading: "Title"),
+            mFieldDecor(hint: "Enter title here..", heading: "Title"),
           ),
           TextField(
             controller: descController,
@@ -86,31 +93,37 @@ class _AddExpPageState extends State<AddExpPage> {
                   context: context,
                   builder: (_) {
                     return Container(
-                      padding: EdgeInsets.symmetric(vertical: 21,),
+                      padding: EdgeInsets.symmetric(
+                        vertical: 21,
+                      ),
                       child: GridView.builder(
                         itemCount: AppConstants.mCat.length,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 4),
-                        itemBuilder: (_, index){
-                            return InkWell(
-                              onTap: (){
-                                selectedCatIndex = index;
-                                setState(() {
-
-                                });
-                                Navigator.pop(context);
-                              },
-                              child: Column(
-                                children: [
-                                  Image.asset(AppConstants.mCat[index].imgPath, width: 40, height: 40,),
-                                  Text(AppConstants.mCat[index].title, maxLines: 1, overflow: TextOverflow.ellipsis,)
-                                ],
-                              ),
-                            );
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4),
+                        itemBuilder: (_, index) {
+                          return InkWell(
+                            onTap: () {
+                              selectedCatIndex = index;
+                              setState(() {});
+                              Navigator.pop(context);
+                            },
+                            child: Column(
+                              children: [
+                                Image.asset(
+                                  AppConstants.mCat[index].imgPath,
+                                  width: 40,
+                                  height: 40,
+                                ),
+                                Text(
+                                  AppConstants.mCat[index].title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                )
+                              ],
+                            ),
+                          );
                         },
                       ),
-
                     );
                   });
             },
@@ -118,17 +131,75 @@ class _AddExpPageState extends State<AddExpPage> {
               width: double.infinity,
               height: 55,
               child: Center(
-                child: selectedCatIndex>=0 ? Row(
+                child: selectedCatIndex >= 0
+                    ? Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset(AppConstants.mCat[selectedCatIndex].imgPath, width: 35, height: 35,),
-                    Text(" - ${AppConstants.mCat[selectedCatIndex].title}")
+                    Image.asset(
+                      AppConstants.mCat[selectedCatIndex].imgPath,
+                      width: 35,
+                      height: 35,
+                    ),
+                    Text(
+                        " - ${AppConstants.mCat[selectedCatIndex].title}")
                   ],
-                ) : Text('Choose a Category'),
+                )
+                    : Text('Choose a Category'),
               ),
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(21),
                   border: Border.all(width: 1, color: Colors.black)),
+            ),
+          ),
+
+          OutlinedButton(
+            onPressed: () async {
+              if (titleController.text.isNotEmpty &&
+                  descController.text.isNotEmpty &&
+                  amtController.text.isNotEmpty &&
+                  selectedCatIndex > -1
+              ) {
+                var prefs = await SharedPreferences.getInstance();
+                String uid = prefs.getString("userId") ?? "";
+
+                context.read<ExpenseBloc>().add(AddExpenseEvent(newExp: ExpenseModel(userId: int.parse(uid),
+                    expenseType: selectedExpenseType,
+                    title: titleController.text,
+                    desc: descController.text,
+                    createdAt: DateTime.now().millisecondsSinceEpoch.toString(),
+                    amount: double.parse(amtController.text),
+                    balance: 0,
+                    categoryId: AppConstants.mCat[selectedCatIndex].id)));
+
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Expense added!!'), backgroundColor: Colors.green,));
+
+
+
+                /* DbHelper dbHelper = DbHelper.instance;*/
+
+
+               //bool check = await dbHelper.addExpense();
+
+               /*if(check){
+                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Expense added!!'), backgroundColor: Colors.green,));
+                 Navigator.pop(context);
+               } else {
+                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                     content: Text('Error adding Expense!!'),
+                   backgroundColor: Colors.red,
+                 ));*/
+              }
+            },
+            child: Text('Add Expense'),
+            style: ElevatedButton.styleFrom(
+                side: BorderSide(
+                    width: 1
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(21),
+                ),
+                minimumSize: Size(double.infinity, 56)
             ),
           )
         ]),

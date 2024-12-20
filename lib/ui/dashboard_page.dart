@@ -1,10 +1,32 @@
+import 'package:expense_app_ui/data/local/model/expense_model.dart';
+import 'package:expense_app_ui/domain/app_constants.dart';
 import 'package:expense_app_ui/ui/add_exp_page.dart';
+import 'package:expense_app_ui/ui/bloc/expense_bloc.dart';
+import 'package:expense_app_ui/ui/bloc/expense_event.dart';
+import 'package:expense_app_ui/ui/bloc/expense_state.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
-class SecondPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  List<ExpenseModel> mExpense = [];
+  DateFormat mFormat = DateFormat.yMMMEd();
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<ExpenseBloc>().add(FetchInitialExpenseEvent());
+  }
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(25.0),
@@ -158,7 +180,80 @@ class SecondPage extends StatelessWidget {
             ),
 
             ///Expense List
-            Align(
+            Expanded(
+              child: BlocBuilder<ExpenseBloc, ExpenseState>(builder: (_, state){
+                if(state is ExpenseLoadingState){
+                  return Center(child: CircularProgressIndicator(),);
+                } else if(state is ExpenseErrorState){
+                  return Center(child: Text(state.errorMsg),);
+                } else if(state is ExpenseLoadedState){
+              
+                  return state.mExp.isNotEmpty ? ListView.builder(
+                    itemCount: state.mExp.length,
+                      itemBuilder: (_, index){
+              
+                    var allExp = state.mExp;
+              
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 11.0),
+                      child: Row(
+                        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                              height: 30,
+                              width: 30,
+                              decoration: BoxDecoration(
+                                  color: Color(0xFFe0e0e0),
+                                  borderRadius: BorderRadius.circular(5)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Image.asset(
+                                  AppConstants.mCat.where((exp){
+                                    return exp.id==allExp[index].categoryId;
+                                  }).toList()[0].imgPath,
+                                  fit: BoxFit.contain,
+                                  height: 30,
+                                  width: 30,
+                                ),
+                              )),
+                          SizedBox(
+                            width: 15,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(allExp[index].title,
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.w500),
+                              ),
+                              Text(allExp[index].desc)
+                            ],
+                          ),
+                          Spacer(),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                "${mFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(allExp[index].createdAt)))}",
+                                style: TextStyle(fontSize: 11, color: Colors.grey),
+                              ),
+                              Text(
+                                "-\$${allExp[index].amount}",
+                                style: TextStyle(fontSize: 18, color: Colors.pinkAccent),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }) : Center(child: Text("No expenses yet!!"),);
+              
+                }
+              
+                return Container();
+              }),
+            )
+            /*Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "Expense List",
@@ -349,7 +444,7 @@ class SecondPage extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
+            ),*/
           ],
         ),
       ),
