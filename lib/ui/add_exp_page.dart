@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 
 class AddExpPage extends StatefulWidget {
   @override
@@ -28,6 +29,9 @@ class _AddExpPageState extends State<AddExpPage> {
 
   List<String> mExpenseType = ["Debit", "Credit", "Loan", "Lend", "Borrow"];
 
+  DateTime selectedDate = DateTime.now();
+  DateFormat mFormat = DateFormat.yMMMd();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +44,7 @@ class _AddExpPageState extends State<AddExpPage> {
           TextField(
             controller: titleController,
             decoration:
-            mFieldDecor(hint: "Enter title here..", heading: "Title"),
+                mFieldDecor(hint: "Enter title here..", heading: "Title"),
           ),
           TextField(
             controller: descController,
@@ -133,18 +137,67 @@ class _AddExpPageState extends State<AddExpPage> {
               child: Center(
                 child: selectedCatIndex >= 0
                     ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      AppConstants.mCat[selectedCatIndex].imgPath,
-                      width: 35,
-                      height: 35,
-                    ),
-                    Text(
-                        " - ${AppConstants.mCat[selectedCatIndex].title}")
-                  ],
-                )
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            AppConstants.mCat[selectedCatIndex].imgPath,
+                            width: 35,
+                            height: 35,
+                          ),
+                          Text(
+                              " - ${AppConstants.mCat[selectedCatIndex].title}")
+                        ],
+                      )
                     : Text('Choose a Category'),
+              ),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(21),
+                  border: Border.all(width: 1, color: Colors.black)),
+            ),
+          ),
+
+          InkWell(
+            onTap: () async{
+              if (Platform.isIOS || Platform.isMacOS) {
+                showCupertinoModalPopup(
+                    context: context,
+                    builder: (_) {
+                      return Container(
+                        height: 200,
+                        color: Colors.white,
+                        child: CupertinoDatePicker(
+                          mode: CupertinoDatePickerMode.date,
+                            minimumDate: DateTime.now().subtract(Duration(days: 365)),
+                            minimumYear: DateTime.now().year-1,
+                            maximumYear: DateTime.now().year,
+                            maximumDate: DateTime.now().add(Duration(hours: 1)),
+                            onDateTimeChanged: (selectedValue){
+                            selectedDate = selectedValue;
+                            setState(() {
+
+                            });
+                            }),
+                      );
+                    });
+              } else {
+
+               selectedDate = await showDatePicker(
+                    context: context,
+                    firstDate: DateTime(DateTime.now().year-1),
+                    lastDate: DateTime.now()
+                ) ?? DateTime.now();
+
+              }
+
+              setState(() {
+
+              });
+            },
+            child: Container(
+              width: double.infinity,
+              height: 55,
+              child: Center(
+                child: Text(mFormat.format(selectedDate).toString()),
               ),
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(21),
@@ -157,31 +210,33 @@ class _AddExpPageState extends State<AddExpPage> {
               if (titleController.text.isNotEmpty &&
                   descController.text.isNotEmpty &&
                   amtController.text.isNotEmpty &&
-                  selectedCatIndex > -1
-              ) {
+                  selectedCatIndex > -1) {
                 var prefs = await SharedPreferences.getInstance();
                 String uid = prefs.getString("userId") ?? "";
 
-                context.read<ExpenseBloc>().add(AddExpenseEvent(newExp: ExpenseModel(userId: int.parse(uid),
-                    expenseType: selectedExpenseType,
-                    title: titleController.text,
-                    desc: descController.text,
-                    createdAt: DateTime.now().millisecondsSinceEpoch.toString(),
-                    amount: double.parse(amtController.text),
-                    balance: 0,
-                    categoryId: AppConstants.mCat[selectedCatIndex].id)));
+                context.read<ExpenseBloc>().add(AddExpenseEvent(
+                    newExp: ExpenseModel(
+                        userId: int.parse(uid),
+                        expenseType: selectedExpenseType,
+                        title: titleController.text,
+                        desc: descController.text,
+                        createdAt:
+                            selectedDate.millisecondsSinceEpoch.toString(),
+                        amount: double.parse(amtController.text),
+                        balance: 0,
+                        categoryId: AppConstants.mCat[selectedCatIndex].id)));
 
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Expense added!!'), backgroundColor: Colors.green,));
-
-
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('Expense added!!'),
+                  backgroundColor: Colors.green,
+                ));
 
                 /* DbHelper dbHelper = DbHelper.instance;*/
 
+                //bool check = await dbHelper.addExpense();
 
-               //bool check = await dbHelper.addExpense();
-
-               /*if(check){
+                /*if(check){
                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Expense added!!'), backgroundColor: Colors.green,));
                  Navigator.pop(context);
                } else {
@@ -193,14 +248,11 @@ class _AddExpPageState extends State<AddExpPage> {
             },
             child: Text('Add Expense'),
             style: ElevatedButton.styleFrom(
-                side: BorderSide(
-                    width: 1
-                ),
+                side: BorderSide(width: 1),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(21),
                 ),
-                minimumSize: Size(double.infinity, 56)
-            ),
+                minimumSize: Size(double.infinity, 56)),
           )
         ]),
       ),

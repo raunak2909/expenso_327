@@ -1,4 +1,5 @@
 import 'package:expense_app_ui/data/local/model/expense_model.dart';
+import 'package:expense_app_ui/data/local/model/filter_expense_model.dart';
 import 'package:expense_app_ui/domain/app_constants.dart';
 import 'package:expense_app_ui/ui/add_exp_page.dart';
 import 'package:expense_app_ui/ui/bloc/expense_bloc.dart';
@@ -15,8 +16,15 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  List<String> mMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   List<ExpenseModel> mExpense = [];
-  DateFormat mFormat = DateFormat.yMMMEd();
+  DateFormat mFormat = DateFormat.yM();
+  ///month
+  ///DateFormat mFormat = DateFormat.yM();
+  ///year
+  ///DateFormat mFormat = DateFormat.y();
+
+  List<FilterExpenseModel> filteredData = [];
 
   @override
   void initState() {
@@ -26,7 +34,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(25.0),
@@ -175,282 +182,209 @@ class _DashboardPageState extends State<DashboardPage> {
                 ],
               ),
             ),
-            SizedBox(
-              height: 15,
-            ),
 
             ///Expense List
             Expanded(
-              child: BlocBuilder<ExpenseBloc, ExpenseState>(builder: (_, state){
-                if(state is ExpenseLoadingState){
-                  return Center(child: CircularProgressIndicator(),);
-                } else if(state is ExpenseErrorState){
-                  return Center(child: Text(state.errorMsg),);
-                } else if(state is ExpenseLoadedState){
-              
-                  return state.mExp.isNotEmpty ? ListView.builder(
-                    itemCount: state.mExp.length,
-                      itemBuilder: (_, index){
-              
-                    var allExp = state.mExp;
-              
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 11.0),
-                      child: Row(
-                        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                              height: 30,
-                              width: 30,
+              child:
+                  BlocBuilder<ExpenseBloc, ExpenseState>(builder: (_, state) {
+                if (state is ExpenseLoadingState) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else if (state is ExpenseErrorState) {
+                  return Center(
+                    child: Text(state.errorMsg),
+                  );
+                } else if (state is ExpenseLoadedState) {
+                  filterDataDateWise(allExp: state.mExp);
+
+                  return state.mExp.isNotEmpty
+                      ? ListView.builder(
+                          itemCount: filteredData.length,
+                          itemBuilder: (_, index) {
+
+                            return Container(
+                              margin: EdgeInsets.only(bottom: 11),
                               decoration: BoxDecoration(
-                                  color: Color(0xFFe0e0e0),
-                                  borderRadius: BorderRadius.circular(5)),
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(9),
+                                border: Border.all(color: Colors.grey, width: 0.5),
+                              ),
                               child: Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Image.asset(
-                                  AppConstants.mCat.where((exp){
-                                    return exp.id==allExp[index].categoryId;
-                                  }).toList()[0].imgPath,
-                                  fit: BoxFit.contain,
-                                  height: 30,
-                                  width: 30,
+                                padding: const EdgeInsets.all(10.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          filteredData[index].typeName,
+                                          style: TextStyle(
+                                              fontSize: 17, fontWeight: FontWeight.bold),
+                                        ),
+                                        Text(
+                                          "-\$${filteredData[index].totalAmt}",
+                                          style: TextStyle(
+                                              fontSize: 17, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                    Divider(),
+                                    ListView.builder(
+                                      physics: NeverScrollableScrollPhysics(),
+                                      itemCount: filteredData[index].allExpenses.length,
+                                        shrinkWrap: true,
+                                        itemBuilder: (_, childIndex){
+                                      return Padding(
+                              padding: const EdgeInsets.only(bottom: 11.0),
+                              child: Row(
+                                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                      height: 30,
+                                      width: 30,
+                                      decoration: BoxDecoration(
+                                          color: Color(0xFFe0e0e0),
+                                          borderRadius:
+                                              BorderRadius.circular(5)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(5.0),
+                                        child: Image.asset(
+                                          AppConstants.mCat
+                                              .where((exp) {
+                                                return exp.id ==
+                                                    filteredData[index].allExpenses[childIndex].categoryId;
+                                              })
+                                              .toList()[0]
+                                              .imgPath,
+                                          fit: BoxFit.contain,
+                                          height: 30,
+                                          width: 30,
+                                        ),
+                                      )),
+                                  SizedBox(
+                                    width: 15,
+                                  ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        filteredData[index].allExpenses[childIndex].title,
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500),
+                                      ),
+                                      Text(filteredData[index].allExpenses[childIndex].desc)
+                                    ],
+                                  ),
+                                  Spacer(),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        mFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(filteredData[index].allExpenses[childIndex].createdAt))),
+                                        style: TextStyle(
+                                            fontSize: 11, color: Colors.grey),
+                                      ),
+                                      Text(
+                                        "-\$${filteredData[index].allExpenses[childIndex].amount}",
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.pinkAccent),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                                    })
+                                  ],
                                 ),
-                              )),
-                          SizedBox(
-                            width: 15,
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(allExp[index].title,
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.w500),
                               ),
-                              Text(allExp[index].desc)
-                            ],
-                          ),
-                          Spacer(),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                "${mFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(allExp[index].createdAt)))}",
-                                style: TextStyle(fontSize: 11, color: Colors.grey),
-                              ),
-                              Text(
-                                "-\$${allExp[index].amount}",
-                                style: TextStyle(fontSize: 18, color: Colors.pinkAccent),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  }) : Center(child: Text("No expenses yet!!"),);
-              
+                            );
+
+
+                          })
+                      : Center(
+                          child: Text("No expenses yet!!"),
+                        );
                 }
-              
+
                 return Container();
               }),
             )
-            /*Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "Expense List",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w400),
-                )),
-            SizedBox(
-              height: 20,
-            ),
-            ///shop, Elecronic container
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(9),
-                border: Border.all(color: Colors.grey, width: 0.5), // Set the border color and width
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Tuesday, 14",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
-                        Text("-\$1380",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    Divider(),
-                    Row(
-                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                            height: 30,
-                            width: 30,
-                            decoration: BoxDecoration(
-                                color: Color(0xFFe0e0e0),
-                                borderRadius: BorderRadius.circular(5)),
-                            child: Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: Image.asset(
-                                "asset/image/shpotroll-removebg-preview.png",
-                                fit: BoxFit.contain,
-                                height: 30,
-                                width: 30,
-                                color: Color(0xFF727dd6),
-                              ),
-                            )),
-                        SizedBox(
-                          width: 15,
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Shop",
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.w500),
-                            ),
-                            Text("Buy new Clothes")
-                          ],
-                        ),
-                        SizedBox(
-                          width: 120,
-                        ),
-                        Text(
-                          "-\$90",
-                          style: TextStyle(fontSize: 18, color: Colors.pinkAccent),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 15,
-                    ),
-                    Row(
-                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                            height: 30,
-                            width: 30,
-                            decoration: BoxDecoration(
-                                // color: Color(0xFFe0e0e0),
-                                borderRadius: BorderRadius.circular(5)),
-                            child: Padding(
-                              padding: const EdgeInsets.all(2.0),
-                              child: Image.asset(
-                                "asset/image/mobile-removebg-preview.png",
-                                fit: BoxFit.contain,
-                                height: 40,
-                                width: 40,
-                              ),
-                            )),
-                        SizedBox(
-                          width: 15,
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Electronic",
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.w500),
-                            ),
-                            Text("Buy new iphone 14")
-                          ],
-                        ),
-                        SizedBox(
-                          width: 85,
-                        ),
-                        Text(
-                          "-\$1290",
-                          style: TextStyle(fontSize: 18, color: Colors.pinkAccent),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            SizedBox(
-              height: 30,
-            ),
-
-            // transportation
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(9),
-                border: Border.all(color: Colors.grey, width: 0.5), // Set the border color and width
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Monday, 14",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
-                        Text("-\$60 ",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    Divider(),
-                    Row(
-                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                            height: 30,
-                            width: 30,
-                            decoration: BoxDecoration(
-                                color: Color(0xffffffff),
-                                borderRadius: BorderRadius.circular(5)),
-                            child: Padding(
-                              padding: const EdgeInsets.all(0.0),
-                              child: Image.asset(
-                                "asset/image/transportation-removebg-preview.png",
-                                fit: BoxFit.contain,
-                                height: 40,
-                                width: 40,
-                                color: Colors.orangeAccent,
-                              ),
-                            )),
-                        SizedBox(
-                          width: 15,
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Transportation",
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.w500),
-                            ),
-                            Text("Trip to Malang")
-                          ],
-                        ),
-                        SizedBox(
-                          width: 110,
-                        ),
-                        Text(
-                          "-\$60",
-                          style: TextStyle(fontSize: 18, color: Colors.pinkAccent),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 15,
-                    ),
-
-                  ],
-                ),
-              ),
-            ),*/
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(onPressed: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context)=>AddExpPage()));
-      },child: Icon(Icons.add),),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => AddExpPage()));
+        },
+        child: Icon(Icons.add),
+      ),
     );
   }
+
+  void filterDataDateWise({required List<ExpenseModel> allExp}) {
+    filteredData.clear();
+    ///date/month/year
+    ///total Amount
+    ///List of Expense
+    List<String> uniqueDates = [];
+
+    for (ExpenseModel eachExp in allExp) {
+      String eachDate = mFormat.format(
+          DateTime.fromMillisecondsSinceEpoch(int.parse(eachExp.createdAt)));
+
+      if (!uniqueDates.contains(eachDate)) {
+        uniqueDates.add(eachDate);
+      }
+    }
+
+    print(uniqueDates);
+
+    for (String eachDate in uniqueDates) {
+      num totalAmt = 0.0;
+      List<ExpenseModel> eachDateExp = [];
+
+      for (ExpenseModel eachExp in allExp) {
+        String expDate = mFormat.format(
+            DateTime.fromMillisecondsSinceEpoch(int.parse(eachExp.createdAt)));
+
+
+        if(eachDate==expDate){
+          eachDateExp.add(eachExp);
+
+          if(eachExp.expenseType=="Debit"){
+            ///debit
+            totalAmt += eachExp.amount;
+          } else {
+            ///credit
+            totalAmt -= eachExp.amount;
+          }
+
+        }
+
+
+
+      }
+
+
+
+
+      filteredData.add(FilterExpenseModel(typeName: "${mMonths[int.parse(eachDate.split('/')[0])-1]},${eachDate.split('/')[1]}", totalAmt: totalAmt, allExpenses: eachDateExp));
+
+
+
+    }
+
+    //print(filteredData[2].allExpenses.length);
+  }
 }
+
+/// month wise
+/// year wise
+///
